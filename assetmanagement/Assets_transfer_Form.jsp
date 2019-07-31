@@ -1,0 +1,402 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<%@page import="com.gen.cms.assets.beans.*"%> 
+<%@page import="java.util.ArrayList"%> 
+<%@page import="java.sql.ResultSet"%>
+<%@ page import = "java.io.*,java.util.*" %>
+<%@ page import = "javax.servlet.*,java.text.*" %>
+
+<HTML>
+<HEAD>
+<%@ page 
+language="java"
+contentType="text/html; charset=ISO-8859-1"
+pageEncoding="ISO-8859-1"
+%>
+
+
+<%@ page import="com.gen.cms.assets.beans.*"%>
+<%@ page import="java.util.*"%>
+
+<%@ page errorPage="../../error.jsp" %>
+
+<%@ include file="../cookieTracker/CookieTrackerTop.jsp" %> 
+<%
+	String browserType=(String)request.getHeader("User-Agent");
+	System.out.println("Browser Type "+browserType); 
+	Assets_DBQueries dbVer=new Assets_DBQueries();
+	String version=dbVer.BrowserVersion(browserType);
+	float ver=11;
+	if(!version.isEmpty())
+	{
+	ver=Float.parseFloat(version);
+	}
+	System.out.println("Version of IE "+ver);
+	if(ver<11.0){
+		%>
+		<!-- Code Comes here -->
+	<%}else if(version.isEmpty()){%>
+		 <meta http-equiv="X-UA-Compatible" content="IE=edge">
+		 <meta name="viewport" content="width=device-width, initial-scale=1">
+		 <meta name="robots" content="noindex, nofollow">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.css" />
+	    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.js"></script>
+	<%} %>
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+<META name="GENERATOR" content="IBM WebSphere Studio" />
+<META http-equiv="Content-Style-Type" content="text/css" />
+<LINK href="../../stylesheet/main.css" rel="stylesheet" type="text/css" />
+<SCRIPT language="javascript" src="../../javascript/AssetsJS/Assets_Sub_Cate.js"> </SCRIPT>
+<SCRIPT language="javascript" src="../../javascript/Validate.js"></SCRIPT>
+<script language="javascript" src="../../javascript/popcalendar.js"></script>
+<jsp:useBean id="assetManager" class="com.gen.cms.assets.beans.Assets_DBQueries"></jsp:useBean>
+
+<TITLE>Assets Transfer</TITLE>
+<script type="text/javascript">
+function display()
+{
+	var ss=document.Assets_transfer.main_cat.value;
+	m=document.getElementsByName("mmmm");
+	
+	for(i=0;i<m.length;i++){
+		document.getElementById("sub"+m[i].value).style.display="none";
+	}
+	document.getElementById("sub"+ss).style.display="inline";
+	
+}
+		
+		var str="";
+function addSubCategory(sId)
+{
+	val=document.getElementById("catValue"+sId);
+	sname=document.getElementById("sub_cat_name"+sId).value;
+	rname=document.getElementById("ref_no"+sId).value;
+	mStr=sname+" ( "+rname+" )";
+	v=val.value;
+	if(val.checked){
+		val1=document.getElementById("selectedSubCat").value;
+		x=document.Assets_transfer.tempAsset.value;
+		if(val1==""){
+			str=mStr;
+		}else{
+			str=val1+", "+mStr;
+		}
+							
+		if(x==""){
+			str1=v;
+		}else{
+			str1=x+","+v;
+		}
+		document.getElementById("selectedSubCat").innerHTML=str;
+		document.Assets_transfer.tempAsset.value=str1;
+		}else{
+		val1=document.getElementById("selectedSubCat").value;
+		x=document.Assets_transfer.tempAsset.value;
+		val2="";
+		val3="";
+		s=val1.split(",");
+		s1=x.split(",");
+							
+		for(i=0;i<s1.length;i++){
+			if(!(s1[i]==v)){
+				//alert("hi1");
+				if(val3==""){
+					val3=s1[i];
+					val2=s[i];
+				}else{
+					val3=val3+","+s1[i];
+					val2=val2+", "+s[i];
+				}
+			}
+		}
+							
+		document.getElementById("selectedSubCat").innerHTML=val2;
+		document.Assets_transfer.tempAsset.value=val3;
+	}
+} 
+
+function submitForm()
+{
+	if(document.Assets_transfer.dep_name.value=="")
+	{
+		alert("Select Department Name ");
+		return false;
+	}
+	if(document.Assets_transfer.main_cat.value=="")
+	{
+		alert("Select Main Category ");
+		return false;
+	}
+	if(document.Assets_transfer.tempAsset.value=="")
+	{
+		alert("Select One SubCategory ");
+		return false;
+	}
+	if(document.Assets_transfer.reason.value=="")
+	{
+		alert("Enter Reason For Transfer ");
+		return false;
+	}
+	
+	document.Assets_transfer.action="../../AssetsServlet";
+	document.Assets_transfer.submit();
+}
+
+function instruction()
+		{
+			if (document.getElementById("demo").style.visibility=== "hidden") 
+			{
+  				document.getElementById("demo").style.visibility = "visible";
+  			}
+  			else
+  			{
+  				document.getElementById("demo").style.visibility = "hidden";
+  			}
+			return true
+		}
+
+</script>
+<style>
+#btn{
+	background: linear-gradient(35deg, #ffcccc,  #ccffff);
+}
+
+#flt{
+	float:left;
+	position:relative;
+	top:200px;
+}
+</style>
+</HEAD>
+<%
+	String Edate=request.getParameter("entry_date");
+	String mCat=request.getParameter("main_cat");
+	String sCat=request.getParameter("sub_cat");
+	String dep_name=request.getParameter("dep_id");
+	ResultSet res1=null;
+	String msg=(String)session.getAttribute("error"); 
+ 	session.removeAttribute("error");
+ 	System.out.println("message "+msg);
+    Date dNow = new Date( );
+    SimpleDateFormat ft = new SimpleDateFormat ("M-dd-yyyy");
+    String dta=ft.format(dNow);     
+    ArrayList mainCatArr=assetManager.selectMainCat();
+   	int count=1;
+   	String main_name="";
+   	String sub_name="";	
+   	String status="";	
+   	String d_name="";
+   	String id="";
+   	String sh_name="";
+   	String sh_unit="";
+   	String unit="";
+   	String assetId="";
+   	ArrayList CurDepart=assetManager.selectAssetTransfer(11, email, "", "");
+   	ArrayList Depart=assetManager.selectDepartment();
+   	for(int k=0;k<CurDepart.size();k++)
+   	{
+   		ArrayList fetc=(ArrayList)CurDepart.get(k);
+   		id=""+fetc.get(2);
+   		d_name=""+fetc.get(0);
+   		unit=""+fetc.get(1);
+   	}
+   	String cid="";
+   	int cnt=1;
+   	System.out.println("Department value "+d_name+" id "+id+" unit "+unit);
+ %>		
+<body>
+<form name="Assets_transfer"  method="post" action="">
+<input type="hidden" name="ActionId" value="AssetsTransfer">
+<input type="hidden" name="Task" value="Add">
+<input type="hidden" name="op" value="1">
+<input type="hidden" name="selectedAsset"  value="">
+<input type="hidden" name="tempAsset" value="">
+<div class="container-fluid"  id=Layer5>
+	<table   border=0 style=" border-color:red; position: relative;">
+	<h5>Assets Transfer Form</h5>
+	<hr/>
+	<tr>
+		<td>Transferred From: &nbsp;&nbsp;</td><td><font color="red"><%=d_name %></font>
+				<input type="hidden" name="Cur_dep" value="<%=d_name %>">
+				<input type="hidden" name="Cur_dep" value="<%=id %>">
+				<input type="hidden" name="Cur_dep" value="<%=unit %>">
+				<input type="hidden" name="Cur_dep" value="<%=email%>"></td>
+		
+		<td>Transferred To: &nbsp;&nbsp;</td> 
+		<td>
+			<select name="dep_name" data-live-search="true" data-live-search-style="startsWith" class="selectpicker"  data-size="10"  data-width="60%" data-height="3%" required>
+				<option></option>
+				<%
+						System.out.println("in department fetch  ");
+		          		Iterator itr=Depart.iterator();
+		          		System.out.println("Iterator = "+itr);
+						while(itr.hasNext()){
+						ArrayList arr=(ArrayList)itr.next();
+						cid=""+arr.get(0);
+						String name=""+arr.get(1);
+						System.out.println("end");
+		       	%>
+		       		
+				<option value="<%=cid%>"  <%if(cid.equals(dep_name)){ %> selected<%}%>><%=name %></option>
+					<%} %>
+			</select>
+			<input type="hidden" value="<%=cid%>" name="tr_dep">
+		</td>
+	</tr>
+	
+	<tr>
+		<td>	
+			Main Category<FONT color="#FF0000">*</FONT>
+		</td>
+		<td style="height: 10px;">
+		<select name="main_cat" data-live-search="true" data-live-search-style="startsWith" class="selectpicker"  data-size="30"  data-width="50%" data-height="15%"  onchange="display()">
+			<option></option>
+			<%
+					System.out.println("In main category");
+	          		itr=mainCatArr.iterator();
+					while(itr.hasNext()){
+					ArrayList arr=(ArrayList)itr.next();
+					cid=""+arr.get(0);
+					main_name=""+arr.get(1);
+					String csname=""+arr.get(2);
+					System.out.println("end ");
+	       		 %>
+			<option value="<%=cid%>" <%if(cid.equals(mCat)){ %> selected<%}%>><%=main_name %></option>
+				<%} %>
+		</select>
+		</td>
+
+	</tr>
+</table>
+<br>
+<br>
+	<table>
+	<caption>Selected Assets for transfer</caption>
+	<tr><td>
+	<textarea rows="4" cols="40" id="selectedSubCat" class="form-control" onkeypress="return (event.keyCode!=39)"></textarea>
+	</td>
+	</tr>
+	</table>
+	<br>
+		<font color="#FF0000" size="3px"><%if(msg!=null){%>&nbsp;<%=msg%><%}%></font>
+	</div>
+<div style="position:absolute; left:500px; top:100px; ">
+<%
+	for(int i=0;i<mainCatArr.size();i++)
+	{ 
+		ArrayList mainCatArr1=(ArrayList)mainCatArr.get(i);
+		String mainCatId=""+mainCatArr1.get(0);
+		long in=0;
+		try{
+			in=Integer.parseInt(mainCatId);
+		}
+		catch (NumberFormatException e)
+		{
+			in=0;
+		}
+		String mainCatname=""+mainCatArr1.get(1);
+		ArrayList subCatArr=assetManager.selectSubName(in);
+%>
+		<input type="hidden" name="mmmm" value="<%=mainCatId%>">
+		<%
+			cnt=1;
+			for(int j=0;j<subCatArr.size();j++)
+				{
+					ArrayList subCatArr1=(ArrayList)subCatArr.get(j);
+					String subCatId=""+subCatArr1.get(0);
+					String subCatName=""+subCatArr1.get(2);
+					ArrayList asset=assetManager.selectAssetTransfer(12,email,subCatId,mainCatId);
+					System.out.println("Assets Value "+asset+" Subcategory "+subCatId+" Sub name "+subCatName);
+			
+		%>
+			<div id="sub<%=mainCatId%>" style="display: none; position: absolute;">
+					<table class="table" style=" border-collapse: collapse;">
+						<% if(!asset.isEmpty())
+						{ %>
+								<caption>
+									<b><%=mainCatname%></b>
+								</caption>
+				
+								<tr>
+									<th>Sl.No</th>
+									<th>Name</th>
+									<th>Reference Number</th>
+									<th></th>
+								</tr>
+								<%
+								for(int k=0;k<asset.size();k++)
+								{
+									ArrayList asset1=(ArrayList)asset.get(k);
+									assetId=""+asset1.get(0);
+									String sub_id=""+asset1.get(2);
+									String ref_no=""+asset1.get(11);
+									String name=""+asset1.get(20);	
+									System.out.println("Reference number "+name);		
+									%>
+									<tr>
+										<td style="text-align: center;"><input type="hidden" value="<%=sub_id%>" name="sub_id">
+											<%=cnt%></td>
+					
+										<td style="text-align: center;"><%=name%></td>
+										<td style="text-align: center;"><%=ref_no %></td>
+										<td style="text-align: center;"><input type="hidden" id="sub_cat_name<%=assetId%>" value="<%=name%>"> 
+										<input type="hidden" id="ref_no<%=assetId%>" value="<%=ref_no%>">
+										<input type="checkbox" name="catValue" id="catValue<%=assetId%>" value="<%=assetId%>" onclick="addSubCategory('<%=assetId%>')">
+											<% %>
+										</td>
+									</tr>
+									<%cnt=cnt+1; 
+								}%>
+						<%}
+						else if(asset.isEmpty())
+						{ %>
+							<tr>
+								<td colspan="4">
+									<font color="red" size="3px">No Sub Category Data Is Available</font>
+								</td>
+							</tr>
+					  <%} %>
+						</table>
+				</div>
+				  <%} %>
+	<%}%>
+</div>
+	<div style="position:absolute; left:10px;top;500px">
+		<h5>Enter Reason For Transfer</h5>
+		<textarea cols="55" rows="6" name="reason" class="form-control" style="background-color:#FFECEC ;"></textarea> <br/> <br/>
+		<center><input type="button" class="btn" value="Send" onclick="return submitForm()">&nbsp;&nbsp;<input type="reset" class="btn" value="Cancel"></center>
+	</div>
+	
+	<div id="flt" class="container=fluid">
+	<input id="btn"
+		type="button" class="btn" value="User-Instructions" name="cmdSubmit" onclick="instruction()" tabindex="3">
+		<p id="demo" style="visibility:hidden; font-style:bold; font-size:15px; ">
+		<b>Select Department</b><br/>
+		1. Select Department where user want to transfer<br/>
+		<img border="10px" src="<%=request.getContextPath()%>/images/Assets_images/select_depart.jpg" alt="Failed to load image">&nbsp;&nbsp; <br/><br/><br/>
+		
+		<b>Select Main Category</b><br/>
+		2. Select main category to filter your require category <br/>Consider below image&nbsp;&nbsp;<br/>
+		<img border="10px" src="<%=request.getContextPath()%>/images/Assets_images/TR_maincat.jpg" alt="Failed to load image">&nbsp;&nbsp; <br/><br/><br/>&nbsp;&nbsp; 
+		
+		<b>Check Sub Category</b><br/>
+		3. After Selecting main category all sub category of that main category will be displayed<br> tick on check box to select it as shoen below <br/> 
+		<img border="10px" src="<%=request.getContextPath()%>/images/Assets_images/TR_chkSub.jpg" alt="Failed to load image">&nbsp;&nbsp; <br><br><br>
+		<b>Enter Reason</b><br/>
+		4. Selected sub category displayed in box shown in below image,  <br/>
+		if you want remove it just uncheck the checkbox. <br>After selecting required sub categiry,  
+		enter valid reason for transfer And click on send button<br>
+		<img border="10px" src="<%=request.getContextPath()%>/images/Assets_images/TR_reason.jpg" alt="Failed to load image">&nbsp;&nbsp; <br><br><br>
+	
+		</p>
+	</div>
+	
+	
+</form>
+</body>
+  <%}else{ %>
+<%@include file="../cookieTracker/CookieTrackerBottom.jsp" %>
+<%} %>
+</HTML>
